@@ -2,7 +2,9 @@ export interface Product {
   id: string;
   title: string;
   image: string;
-  price: number;
   description: string;
+  price: number;
   categoryId: string;
+  sizes?: number[];
+  doughTypes?: string[];
 }
