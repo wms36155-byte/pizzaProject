@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import toast from "react-hot-toast";
 
@@ -19,24 +19,42 @@ export default function ProductCard({ product }: Props) {
 
   const [activeDough, setActiveDough] = useState("Традиционное");
   const [activeSize, setActiveSize] = useState(26);
-  const [count, setCount] = useState(0);
 
-  // ✅ SAFE IMAGE (ERROR FIX)
+  // ✅ REAL COUNT FROM CART (NO LOCAL STATE)
+  const count = useCartStore((state) =>
+    state.items.find(
+      (i) =>
+        i.id === `${product.id}-${activeSize}-${activeDough}`
+    )?.quantity || 0
+  );
+
+  // ✅ SAFE IMAGE
   const imageSrc =
-    product.image && product.image.trim() !== ""
+    product.image?.trim() !== ""
       ? product.image
       : "/placeholder.png";
+
+  // 🔥 DYNAMIC PRICE (REAL SHOP LOGIC)
+  const price = useMemo(() => {
+    let p = product.price;
+
+    if (activeSize === 30) p *= 1.2;
+    if (activeSize === 40) p *= 1.4;
+
+    if (activeDough === "Тонкое") p += 100;
+
+    return Math.round(p);
+  }, [activeSize, activeDough, product.price]);
 
   const handleAdd = () => {
     addToCart({
       id: `${product.id}-${activeSize}-${activeDough}`,
       title: `${product.title} ${activeSize}см`,
       image: imageSrc,
-      price: product.price,
+      price,
       quantity: 1,
     });
 
-    setCount((prev) => prev + 1);
     toast.success("Добавлено в корзину 🍕");
   };
 
@@ -111,7 +129,7 @@ export default function ProductCard({ product }: Props) {
 
           <div className="flex items-end gap-1">
             <p className="text-[34px] font-black leading-none">
-              {product.price}
+              {price}
             </p>
             <span className="text-2xl font-bold mb-1">₽</span>
           </div>
