@@ -3,37 +3,38 @@
 import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
 
+import { useCartStore } from "@/store/cart.store";
+
 export default function Navbar() {
+  const totalItems = useCartStore(
+    (state) => state.totalItems
+  );
+
   return (
     <header className="border-b bg-white sticky top-0 z-50">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+
+      <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
 
         <Link
           href="/"
-          className="text-2xl font-bold text-orange-600"
+          className="text-3xl font-black text-orange-600"
         >
-          PizzaShop
+         Pizza Shop
         </Link>
 
-        <nav className="flex items-center gap-5">
+        <Link
+          href="/cart"
+          className="relative bg-orange-500 hover:bg-orange-600 transition text-white px-6 py-3 rounded-full flex items-center gap-3"
+        >
 
-          <Link href="/">
-            Home
-          </Link>
+          <ShoppingCart size={20} />
 
-          <Link
-            href="/cart"
-            className="relative"
-          >
-            <ShoppingCart />
+          <span>{totalItems()}</span>
 
-            <span className="absolute -top-2 -right-2 text-xs bg-orange-600 text-white rounded-full w-5 h-5 flex items-center justify-center">
-              0
-            </span>
-          </Link>
+        </Link>
 
-        </nav>
       </div>
+
     </header>
   );
 }
