@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import Image from "next/image";
 import toast from "react-hot-toast";
-
 import { Product } from "@/types/product";
 import { useCartStore } from "@/store/cart.store";
 
@@ -20,7 +19,8 @@ export default function ProductCard({ product }: Props) {
   const [activeDough, setActiveDough] = useState("Традиционное");
   const [activeSize, setActiveSize] = useState(26);
 
-  // ✅ REAL COUNT FROM CART (NO LOCAL STATE)
+  const imgRef = useRef<HTMLImageElement>(null);
+
   const count = useCartStore((state) =>
     state.items.find(
       (i) =>
@@ -28,13 +28,11 @@ export default function ProductCard({ product }: Props) {
     )?.quantity || 0
   );
 
-  // ✅ SAFE IMAGE
   const imageSrc =
     product.image?.trim() !== ""
       ? product.image
       : "/placeholder.png";
 
-  // 🔥 DYNAMIC PRICE (REAL SHOP LOGIC)
   const price = useMemo(() => {
     let p = product.price;
 
@@ -46,6 +44,36 @@ export default function ProductCard({ product }: Props) {
     return Math.round(p);
   }, [activeSize, activeDough, product.price]);
 
+  const flyToCart = () => {
+    const cart = document.getElementById("cart-icon");
+    const img = imgRef.current;
+
+    if (!cart || !img) return;
+
+    const imgRect = img.getBoundingClientRect();
+    const cartRect = cart.getBoundingClientRect();
+
+    const clone = img.cloneNode(true) as HTMLImageElement;
+
+    clone.style.position = "fixed";
+    clone.style.left = imgRect.left + "px";
+    clone.style.top = imgRect.top + "px";
+    clone.style.width = "80px";
+    clone.style.zIndex = "9999";
+    clone.style.transition = "all 0.8s ease";
+
+    document.body.appendChild(clone);
+
+    setTimeout(() => {
+      clone.style.left = cartRect.left + "px";
+      clone.style.top = cartRect.top + "px";
+      clone.style.opacity = "0";
+      clone.style.transform = "scale(0.3)";
+    }, 50);
+
+    setTimeout(() => clone.remove(), 900);
+  };
+
   const handleAdd = () => {
     addToCart({
       id: `${product.id}-${activeSize}-${activeDough}`,
@@ -55,63 +83,64 @@ export default function ProductCard({ product }: Props) {
       quantity: 1,
     });
 
+    flyToCart();
+
     toast.success("Добавлено в корзину 🍕");
   };
 
   return (
-    <div className="bg-white rounded-[32px] p-5 border border-zinc-100 hover:shadow-[0_20px_60px_rgba(0,0,0,0.08)] transition-all duration-300 flex flex-col h-full">
+    <div className="bg-white rounded-[32px] p-5 border border-zinc-100 flex flex-col">
 
       {/* IMAGE */}
       <div className="flex justify-center pt-2">
         <Image
+          ref={imgRef}
           src={imageSrc}
           alt={product.title}
           width={260}
           height={260}
-          priority
-          className="object-contain hover:scale-105 transition-transform duration-300 select-none"
-          draggable={false}
+          className="object-contain hover:scale-105 transition"
         />
       </div>
 
       {/* TITLE */}
-      <h3 className="text-[28px] font-black leading-[120%] text-center mt-3 min-h-[72px]">
+      <h3 className="text-2xl font-black text-center mt-3">
         {product.title}
       </h3>
 
-      {/* SELECTORS */}
-      <div className="bg-[#F3F3F3] rounded-2xl p-2 mt-5">
+      {/* OPTIONS */}
+      <div className="bg-[#F3F3F3] rounded-2xl p-2 mt-4">
 
         {/* DOUGH */}
         <div className="grid grid-cols-2 gap-2">
-          {doughs.map((dough) => (
+          {doughs.map((d) => (
             <button
-              key={dough}
-              onClick={() => setActiveDough(dough)}
-              className={`h-[40px] rounded-xl text-[14px] font-bold transition-all duration-200 ${
-                activeDough === dough
-                  ? "bg-white shadow-sm text-black"
-                  : "text-zinc-500 hover:text-black"
+              key={d}
+              onClick={() => setActiveDough(d)}
+              className={`h-10 rounded-xl font-bold ${
+                activeDough === d
+                  ? "bg-white text-black"
+                  : "text-zinc-500"
               }`}
             >
-              {dough}
+              {d}
             </button>
           ))}
         </div>
 
-        {/* SIZES */}
+        {/* SIZE */}
         <div className="grid grid-cols-3 gap-2 mt-2">
-          {sizes.map((size) => (
+          {sizes.map((s) => (
             <button
-              key={size}
-              onClick={() => setActiveSize(size)}
-              className={`h-[40px] rounded-xl text-[14px] font-bold transition-all duration-200 ${
-                activeSize === size
-                  ? "bg-white shadow-sm text-black"
-                  : "text-zinc-500 hover:text-black"
+              key={s}
+              onClick={() => setActiveSize(s)}
+              className={`h-10 rounded-xl font-bold ${
+                activeSize === s
+                  ? "bg-white text-black"
+                  : "text-zinc-500"
               }`}
             >
-              {size} см
+              {s}
             </button>
           ))}
         </div>
@@ -119,46 +148,17 @@ export default function ProductCard({ product }: Props) {
       </div>
 
       {/* FOOTER */}
-      <div className="flex items-end justify-between mt-8">
+      <div className="flex justify-between items-end mt-6">
 
-        {/* PRICE */}
-        <div className="flex flex-col">
-          <span className="text-xs text-zinc-400 font-medium uppercase">
-            price
-          </span>
-
-          <div className="flex items-end gap-1">
-            <p className="text-[34px] font-black leading-none">
-              {price}
-            </p>
-            <span className="text-2xl font-bold mb-1">₽</span>
-          </div>
+        <div>
+          <p className="text-3xl font-black">{price} ₽</p>
         </div>
 
-        {/* BUTTON */}
         <button
           onClick={handleAdd}
-          className="group relative overflow-hidden h-[54px] px-6 rounded-full bg-gradient-to-r from-orange-500 to-orange-400 hover:from-orange-600 hover:to-orange-500 transition-all duration-300 shadow-lg hover:shadow-orange-200 flex items-center gap-3"
+          className="bg-orange-500 text-white px-5 py-3 rounded-full"
         >
-          {/* glow */}
-          <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition" />
-
-          {/* plus */}
-          <div className="relative z-10 w-7 h-7 rounded-full bg-white flex items-center justify-center text-orange-500 text-lg font-black">
-            +
-          </div>
-
-          {/* text */}
-          <span className="relative z-10 text-white font-bold text-[15px]">
-            Добавить
-          </span>
-
-          {/* count */}
-          {count > 0 && (
-            <div className="relative z-10 min-w-[24px] h-6 px-1 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white text-sm font-bold">
-              {count}
-            </div>
-          )}
+          Добавить {count > 0 && `(${count})`}
         </button>
 
       </div>
