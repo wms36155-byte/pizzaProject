@@ -1,18 +1,11 @@
 import { api } from "./axios";
-import { API } from "@/constants/api";
 
-export const getProducts = async () => {
-  const res = await api.get(API.PRODUCTS);
-
-  return res.data;
-};
-
-export const getProductsByCategory = async (
-  categoryId: string
-) => {
-  const res = await api.get(
-    `${API.PRODUCTS}?categoryId=${categoryId}`
-  );
-
+// CREATE FOOD
+export const createFood = async (data: {
+  name: string;
+  price: string;
+  category: string;
+}) => {
+  const res = await api.post("/foods", data);
   return res.data;
 };

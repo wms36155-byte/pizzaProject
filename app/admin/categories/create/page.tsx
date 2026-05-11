@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { FolderKanban, Loader2 } from "lucide-react";
+import { createCategory } from "@/services/category.servise";
 
 export default function CreateCategoryPage() {
   const router = useRouter();
@@ -17,140 +17,37 @@ export default function CreateCategoryPage() {
 
     setLoading(true);
 
-    try {
-      // 👉 API ga yuborasan (keyin backend ulaymiz)
-      await new Promise((res) => setTimeout(res, 800));
+    await createCategory({ name });
 
-      console.log("New Category:", name);
-
-      router.push("/admin/categories");
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setLoading(false);
-    }
+    setLoading(false);
+    router.push("/admin/categories");
   };
 
   return (
     <div className="max-w-xl mx-auto">
 
-      {/* HEADER */}
-      <div className="mb-8">
+      <h1 className="text-3xl font-bold mb-6">
+        Create Category
+      </h1>
 
-        <h1 className="text-4xl font-black text-gray-900">
-          Add Category
-        </h1>
-
-        <p className="text-gray-500 mt-2">
-          Create new food category
-        </p>
-
-      </div>
-
-      {/* FORM CARD */}
       <form
         onSubmit={handleSubmit}
-        className="
-          bg-white
-          rounded-3xl
-          border
-          border-gray-100
-          shadow-sm
-          p-8
-          space-y-6
-        "
+        className="bg-white p-6 rounded-2xl border space-y-4"
       >
 
-        {/* ICON */}
-        <div className="
-          w-14
-          h-14
-          rounded-2xl
-          bg-purple-100
-          text-purple-500
-          flex
-          items-center
-          justify-center
-        ">
-          <FolderKanban size={28} />
-        </div>
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Category name (Pizza, Burger...)"
+          className="w-full border p-3 rounded-xl outline-none focus:ring-2 focus:ring-purple-300"
+        />
 
-        {/* INPUT */}
-        <div>
-
-          <label className="text-sm text-gray-600">
-            Category name
-          </label>
-
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            type="text"
-            placeholder="e.g Pizza, Burger..."
-            className="
-              w-full
-              mt-2
-              px-4
-              py-3
-              border
-              border-gray-200
-              rounded-2xl
-              outline-none
-              focus:ring-2
-              focus:ring-purple-300
-              transition
-            "
-          />
-
-        </div>
-
-        {/* BUTTONS */}
-        <div className="flex gap-3">
-
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="
-              flex-1
-              py-3
-              rounded-2xl
-              border
-              border-gray-200
-              hover:bg-gray-50
-              transition
-            "
-          >
-            Cancel
-          </button>
-
-          <button
-            disabled={loading}
-            className="
-              flex-1
-              py-3
-              rounded-2xl
-              bg-purple-600
-              text-white
-              hover:bg-purple-700
-              transition
-              flex
-              items-center
-              justify-center
-              gap-2
-              disabled:opacity-60
-            "
-          >
-            {loading ? (
-              <>
-                <Loader2 className="animate-spin" size={18} />
-                Saving...
-              </>
-            ) : (
-              "Save Category"
-            )}
-          </button>
-
-        </div>
+        <button
+          disabled={loading}
+          className="bg-purple-600 text-white w-full py-3 rounded-xl"
+        >
+          {loading ? "Saving..." : "Create Category"}
+        </button>
 
       </form>
 
