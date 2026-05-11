@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
-type CartItem = {
-  id: string;
+export type CartItem = {
+  id: string | number;
   title: string;
   image: string;
   price: number;
@@ -11,15 +11,17 @@ type CartItem = {
 type CartStore = {
   items: CartItem[];
 
-  addToCart: (item: CartItem) => void;
-  removeFromCart: (id: string) => void;
-  increaseQty: (id: string) => void;
-  decreaseQty: (id: string) => void;
+  addToCart: (item: Omit<CartItem, "quantity">) => void;
+  removeFromCart: (id: string | number) => void;
+  increaseQty: (id: string | number) => void;
+  decreaseQty: (id: string | number) => void;
+  clearCart: () => void;
 };
 
 export const useCartStore = create<CartStore>((set) => ({
   items: [],
 
+  // 🚀 FIXED ADD TO CART (NO DUPLICATE)
   addToCart: (item) =>
     set((state) => {
       const exists = state.items.find((i) => i.id === item.id);
@@ -35,15 +37,17 @@ export const useCartStore = create<CartStore>((set) => ({
       }
 
       return {
-        items: [...state.items, item],
+        items: [...state.items, { ...item, quantity: 1 }],
       };
     }),
 
+  // REMOVE
   removeFromCart: (id) =>
     set((state) => ({
       items: state.items.filter((i) => i.id !== id),
     })),
 
+  // INCREASE
   increaseQty: (id) =>
     set((state) => ({
       items: state.items.map((i) =>
@@ -51,6 +55,7 @@ export const useCartStore = create<CartStore>((set) => ({
       ),
     })),
 
+  // DECREASE
   decreaseQty: (id) =>
     set((state) => ({
       items: state.items
@@ -61,4 +66,7 @@ export const useCartStore = create<CartStore>((set) => ({
         )
         .filter((i) => i.quantity > 0),
     })),
+
+  // CLEAR
+  clearCart: () => set({ items: [] }),
 }));
