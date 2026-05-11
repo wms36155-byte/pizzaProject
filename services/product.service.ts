@@ -1,31 +1,14 @@
-import { api } from "./axios";
+const BASE_URL =
+  "https://68f11ffe0b966ad50035753d.mockapi.io/products";
 
-// GET ALL PRODUCTS
+// Barcha mahsulotlar
 export const getProducts = async () => {
-  const res = await api.get("/foods");
-  return res.data;
+  const res = await fetch(BASE_URL);
+  return res.json();
 };
 
-// GET BY CATEGORY (SHU MUHIM)
-export const getProductsByCategory = async (category: string) => {
-  const res = await api.get(`/foods?category=${category}`);
-  return res.data;
-};
-
-// CREATE FOOD
-export const createFood = async (data: any) => {
-  const res = await api.post("/foods", data);
-  return res.data;
-};
-
-// UPDATE FOOD
-export const updateFood = async (id: number, data: any) => {
-  const res = await api.put(`/foods/${id}`, data);
-  return res.data;
-};
-
-// DELETE FOOD
-export const deleteFood = async (id: number) => {
-  const res = await api.delete(`/foods/${id}`);
-  return res.data;
+// Category bo‘yicha
+export const getProductsByCategory = async (categoryId: string) => {
+  const res = await fetch(`${BASE_URL}?categoryId=${categoryId}`);
+  return res.json();
 };

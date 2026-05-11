@@ -176,7 +176,7 @@ export default function Navbar() {
               }
             />
             <p>username: admin</p>
-
+            <p>password: 1234</p>
             <input
               placeholder="password"
               type="password"
@@ -185,7 +185,7 @@ export default function Navbar() {
                 setForm({ ...form, password: e.target.value })
               }
             />
-            <p>password: 1234</p>
+
             <div className="flex gap-2">
 
               <button

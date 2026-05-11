@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import { Product } from "@/types/product";
@@ -19,19 +19,21 @@ export default function ProductCard({ product }: Props) {
   const [activeDough, setActiveDough] = useState("Традиционное");
   const [activeSize, setActiveSize] = useState(26);
 
-  const imgRef = useRef<HTMLImageElement>(null);
-
   const count = useCartStore((state) =>
     state.items.find(
-      (i) =>
-        i.id === `${product.id}-${activeSize}-${activeDough}`
+      (i) => i.id === `${product.id}-${activeSize}-${activeDough}`
     )?.quantity || 0
   );
 
+  // 🔥 SAFE IMAGE
   const imageSrc =
-    product.image?.trim() !== ""
+    product.image && product.image.trim().length > 0
       ? product.image
       : "/placeholder.png";
+
+  // 🔥 SAFE ALT (FIX ERROR HERE)
+  const imageAlt =
+    product.title?.trim() || "Pizza image";
 
   const price = useMemo(() => {
     let p = product.price;
@@ -44,36 +46,6 @@ export default function ProductCard({ product }: Props) {
     return Math.round(p);
   }, [activeSize, activeDough, product.price]);
 
-  const flyToCart = () => {
-    const cart = document.getElementById("cart-icon");
-    const img = imgRef.current;
-
-    if (!cart || !img) return;
-
-    const imgRect = img.getBoundingClientRect();
-    const cartRect = cart.getBoundingClientRect();
-
-    const clone = img.cloneNode(true) as HTMLImageElement;
-
-    clone.style.position = "fixed";
-    clone.style.left = imgRect.left + "px";
-    clone.style.top = imgRect.top + "px";
-    clone.style.width = "80px";
-    clone.style.zIndex = "9999";
-    clone.style.transition = "all 0.8s ease";
-
-    document.body.appendChild(clone);
-
-    setTimeout(() => {
-      clone.style.left = cartRect.left + "px";
-      clone.style.top = cartRect.top + "px";
-      clone.style.opacity = "0";
-      clone.style.transform = "scale(0.3)";
-    }, 50);
-
-    setTimeout(() => clone.remove(), 900);
-  };
-
   const handleAdd = () => {
     addToCart({
       id: `${product.id}-${activeSize}-${activeDough}`,
@@ -83,8 +55,6 @@ export default function ProductCard({ product }: Props) {
       quantity: 1,
     });
 
-    flyToCart();
-
     toast.success("Добавлено в корзину 🍕");
   };
 
@@ -92,14 +62,14 @@ export default function ProductCard({ product }: Props) {
     <div className="bg-white rounded-[32px] p-5 border border-zinc-100 flex flex-col">
 
       {/* IMAGE */}
-      <div className="flex justify-center pt-2">
+      <div className="relative w-full h-48">
         <Image
-          ref={imgRef}
           src={imageSrc}
-          alt={product.title}
-          width={260}
-          height={260}
-          className="object-contain hover:scale-105 transition"
+          alt={imageAlt}   // 🔥 FIXED HERE
+          fill
+          sizes="(max-width: 768px) 100vw, 33vw"
+          className="object-contain"
+          priority={false}
         />
       </div>
 
@@ -150,9 +120,7 @@ export default function ProductCard({ product }: Props) {
       {/* FOOTER */}
       <div className="flex justify-between items-end mt-6">
 
-        <div>
-          <p className="text-3xl font-black">{price} ₽</p>
-        </div>
+        <p className="text-3xl font-black">{price} ₽</p>
 
         <button
           onClick={handleAdd}

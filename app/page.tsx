@@ -10,43 +10,48 @@ import ProductList from "@/components/home/ProductList";
 import SortDropdown from "@/components/home/SortDropdown";
 
 import { getCategories } from "@/services/category.servise";
-
 import {
   getProducts,
   getProductsByCategory,
 } from "@/services/product.service";
 
 export default function HomePage() {
-  const [categories, setCategories] = useState([]);
-  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
 
-  const [selectedCategory, setSelectedCategory] =
-    useState("");
-
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // 🔥 PRODUCTS
   const fetchProducts = async (categoryId?: string) => {
     try {
       setLoading(true);
 
-      const data = categoryId
+      const res = categoryId
         ? await getProductsByCategory(categoryId)
         : await getProducts();
 
-      setProducts(data);
-    } catch (error) {
-      console.log(error);
+      const data = res?.data || res;
+
+      setProducts(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.log(err);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
   };
 
+  // 🔥 CATEGORIES
   const fetchCategories = async () => {
     try {
-      const data = await getCategories();
-      setCategories(data);
-    } catch (error) {
-      console.log(error);
+      const res = await getCategories();
+      const data = res?.data || res;
+
+      setCategories(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.log(err);
+      setCategories([]);
     }
   };
 
@@ -72,31 +77,29 @@ export default function HomePage() {
           {/* TOP BAR */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
 
-            {/* CATEGORY FILTER */}
             <CategoryFilter
               categories={categories}
               selected={selectedCategory}
               onSelect={handleCategory}
             />
 
-            {/* SORT DROPDOWN */}
             <SortDropdown />
 
           </div>
 
-          {/* TITLE + COUNT ROW */}
-          <div className="flex items-center justify-between mt-10 mb-8">
+          {/* TITLE */}
+          <h1 className="text-5xl font-black mt-10 mb-8">
+            Все пиццы 🍕
+          </h1>
 
-            <h1 className="text-5xl font-black">
-              Все пиццы
-            </h1>
-
-          </div>
-
-          {/* PRODUCTS */}
+          {/* CONTENT */}
           {loading ? (
-            <div className="text-center py-20 text-lg text-zinc-500">
+            <div className="flex justify-center py-20 text-gray-500">
               Loading pizzas...
+            </div>
+          ) : products.length === 0 ? (
+            <div className="flex justify-center py-20 text-gray-400">
+              No pizzas found 😢
             </div>
           ) : (
             <ProductList products={products} />
