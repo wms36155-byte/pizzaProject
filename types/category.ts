@@ -1,4 +1,6 @@
-export interface Category {
-  id: string;
+export type Category = {
+  id: number;
   name: string;
-}
+  slug: string;
+  createdAt: string;
+};
