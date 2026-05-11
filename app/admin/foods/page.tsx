@@ -123,7 +123,7 @@ export default function FoodsPage() {
                 alt={food.name}
                 className="
                   w-full
-                  h-[240px]
+                  h-240px
                   object-cover
                 "
               />
