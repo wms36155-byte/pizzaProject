@@ -8,6 +8,10 @@ export default function CategoryTable() {
   const { categories, deleteCategory, editCategory } =
     useCategoryStore();
 
+  // helper to compare ids reliably whether they are strings or numbers
+  const isEditing = (id: string | number) =>
+    String(id) === String(editId);
+
   const [editId, setEditId] = useState<
     string | number | null
   >(null);
@@ -20,9 +24,11 @@ export default function CategoryTable() {
   };
 
   const saveEdit = () => {
-    if (!editId) return;
+    // allow 0-like ids, so only bail out for null/undefined
+    if (editId == null) return;
 
-    editCategory(editId, value);
+    // store expects an object with the updated fields
+    editCategory(editId, { name: value });
 
     setEditId(null);
     setValue("");
@@ -76,7 +82,7 @@ export default function CategoryTable() {
               {/* ACTIONS */}
               <div className="flex gap-2">
 
-                {editId === cat.id ? (
+                {isEditing(cat.id) ? (
                   <button
                     onClick={saveEdit}
                     className="px-3 py-1 bg-green-500 text-white rounded"
