@@ -36,7 +36,7 @@ export const useCategoryStore = create<CategoryStore>(
   (set) => ({
     categories: [],
 
-    // ➕ ADD
+    // ADD
     addCategory: (data) =>
       set((state) => ({
         categories: [
@@ -55,7 +55,7 @@ export const useCategoryStore = create<CategoryStore>(
         ],
       })),
 
-    // ❌ DELETE
+    //  DELETE
     deleteCategory: (id) =>
       set((state) => ({
         categories: state.categories.filter(
@@ -63,7 +63,7 @@ export const useCategoryStore = create<CategoryStore>(
         ),
       })),
 
-    // ✏️ EDIT (FIXED)
+    // EDIT 
     editCategory: (id, data) =>
       set((state) => ({
         categories: state.categories.map((c) =>
@@ -82,7 +82,7 @@ export const useCategoryStore = create<CategoryStore>(
         ),
       })),
 
-    // 🧹 CLEAR
+    //  CLEAR
     clearCategories: () =>
       set({ categories: [] }),
   })
