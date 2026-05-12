@@ -14,7 +14,7 @@ export default function OrdersPage() {
     <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-2xl bg-white rounded-[40px] border shadow-xl p-10 text-center relative overflow-hidden">
         {/* TOP GRADIENT */}
-        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-500 to-yellow-400" />
+        <div className="absolute top-0 left-0 w-full h-2 bg-gradient from-orange-500 to-yellow-400" />
 
         {/* ICON */}
         <div className="w-28 h-28 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-8">
