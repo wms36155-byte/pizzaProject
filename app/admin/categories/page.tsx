@@ -92,7 +92,7 @@ export default function CategoriesPage() {
 
                 {/* ID */}
                 <td className="p-5 font-semibold">
-                  #{category.id}
+                  #{String(category.id)}
                 </td>
 
                 {/* NAME */}
@@ -118,7 +118,7 @@ export default function CategoriesPage() {
 
                 {/* FOODS */}
                 <td className="p-5 font-semibold text-gray-700">
-                  {category.totalFoods} Foods
+                  {Number((category as any)?.totalFoods ?? 0)} Foods
                 </td>
 
                 {/* ACTIONS */}
@@ -127,14 +127,18 @@ export default function CategoriesPage() {
                   <div className="flex items-center gap-3">
 
                     <Link
-                      href={`/admin/categories/${category.id}`}
+                      href={`/admin/categories/${String(category.id)}`}
                       className="w-11 h-11 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition"
                     >
                       <Pencil size={18} />
                     </Link>
 
                     <button
-                      onClick={() => deleteCategory(category.id)}
+                      onClick={() => {
+                        if (confirm("Delete this category?")) {
+                          deleteCategory(category.id);
+                        }
+                      }}
                       className="w-11 h-11 rounded-xl bg-red-100 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition"
                     >
                       <Trash2 size={18} />

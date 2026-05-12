@@ -18,11 +18,12 @@ export default function CreateCategoryPage() {
 
     setLoading(true);
 
+    const slug = name.toLowerCase().trim().replace(/\s+/g, "-");
+
+    // addCategory expects { name, slug? }
     addCategory({
-      id: Date.now(),
-      name,
-      slug: name.toLowerCase().replace(/\s+/g, "-"),
-      createdAt: new Date().toLocaleDateString(),
+      name: name.trim(),
+      slug,
     });
 
     setName("");
