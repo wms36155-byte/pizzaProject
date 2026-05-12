@@ -12,7 +12,7 @@ export default function CategoryForm({
   editId,
   onFinish,
 }: Props) {
-  const { categories, addCategory, updateCategory } =
+  const { categories, addCategory, editCategory } =
     useCategoryStore();
 
   const [form, setForm] = useState({
@@ -25,7 +25,8 @@ export default function CategoryForm({
     if (editId === null || editId === undefined) return;
 
     const cat = categories.find(
-      (c) => c.id === editId
+      // compare as strings so number/string ids both match
+      (c) => String(c.id) === String(editId)
     );
 
     if (cat) {
@@ -52,17 +53,17 @@ export default function CategoryForm({
 
     // EDIT MODE
     if (editId !== null && editId !== undefined) {
-      updateCategory(editId, {
+      // call the store's edit function
+      editCategory(editId, {
         name: form.name.trim(),
         slug: form.slug.trim(),
       });
     } else {
       // ADD MODE
+      // the store's addCategory expects only name and optional slug
       addCategory({
-        id: Date.now(),
         name: form.name.trim(),
         slug: form.slug.trim(),
-        createdAt: new Date().toLocaleDateString(),
       });
     }
 
@@ -76,7 +77,7 @@ export default function CategoryForm({
       className="bg-white rounded-2xl border p-6 space-y-4"
     >
       <h2 className="text-2xl font-black">
-        {editId ? "Edit Category" : "Add Category"}
+        {editId != null ? "Edit Category" : "Add Category"}
       </h2>
 
       {/* NAME */}
@@ -102,7 +103,7 @@ export default function CategoryForm({
         type="submit"
         className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-black rounded-xl"
       >
-        {editId ? "Update Category" : "Add Category"}
+        {editId != null ? "Update Category" : "Add Category"}
       </button>
     </form>
   );

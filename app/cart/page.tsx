@@ -12,7 +12,9 @@ import { useOrderStore } from "@/store/order.store";
 
 type CheckoutData = {
   name: string;
+  email: string;
   address: string;
+  notes: string;
 };
 
 export default function CartPage() {
@@ -54,6 +56,7 @@ export default function CartPage() {
       setLoading(true);
 
       try {
+        // ensure order items match OrderStore types (id: number)
         addOrder({
           id: Date.now(),
           customer: data.name,
@@ -61,7 +64,12 @@ export default function CartPage() {
           total,
           status: "Pending",
           createdAt: new Date().toLocaleDateString(),
-          items,
+          items: items.map((it) => ({
+            id: Number(it.id),
+            title: it.title,
+            quantity: it.quantity,
+            price: it.price,
+          })),
         });
 
         clearCart();
@@ -154,7 +162,7 @@ export default function CartPage() {
                         <Minus size={16} />
                       </button>
 
-                      <span className="font-black text-lg min-w-[20px] text-center">
+                      <span className="font-black text-lg min-w-5 text-center">
                         {item.quantity}
                       </span>
 
