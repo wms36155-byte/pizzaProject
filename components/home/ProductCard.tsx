@@ -21,7 +21,7 @@ export default function ProductCard({ product }: Props) {
 
   const count = useCartStore((state) =>
     state.items.find(
-      (i) => i.id === `${product.id}-${activeSize}-${activeDough}`
+      (i) => String(i.id) === `${product.id}-${activeSize}-${activeDough}`
     )?.quantity || 0
   );
 
@@ -52,7 +52,6 @@ export default function ProductCard({ product }: Props) {
       title: `${product.title} ${activeSize}см`,
       image: imageSrc,
       price,
-      quantity: 1,
     });
 
     toast.success("Добавлено в корзину 🍕");

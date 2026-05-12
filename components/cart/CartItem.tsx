@@ -7,7 +7,7 @@ import { useCartStore } from "@/store/cart.store";
 
 interface CartItemProps {
   item: {
-    id: number;
+    id: string | number;
     title: string;
     image: string;
     price: number;
@@ -17,8 +17,8 @@ interface CartItemProps {
 
 export default function CartItem({ item }: CartItemProps) {
   const {
-    increaseQuantity,
-    decreaseQuantity,
+    increaseQty,
+    decreaseQty,
     removeFromCart,
   } = useCartStore();
 
@@ -43,7 +43,7 @@ export default function CartItem({ item }: CartItemProps) {
             </h3>
 
             <p className="text-orange-500 font-bold mt-1">
-              ${item.price}
+              {item.price} ₽
             </p>
           </div>
 
@@ -58,7 +58,7 @@ export default function CartItem({ item }: CartItemProps) {
         {/* QUANTITY */}
         <div className="flex items-center gap-3 mt-4">
           <button
-            onClick={() => decreaseQuantity(item.id)}
+            onClick={() => decreaseQty(item.id)}
             className="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition"
           >
             <Minus size={16} />
@@ -69,7 +69,7 @@ export default function CartItem({ item }: CartItemProps) {
           </span>
 
           <button
-            onClick={() => increaseQuantity(item.id)}
+            onClick={() => increaseQty(item.id)}
             className="w-9 h-9 rounded-full bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center transition"
           >
             <Plus size={16} />
