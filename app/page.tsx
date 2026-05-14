@@ -92,10 +92,7 @@ export default function HomePage() {
             <h1 className="mt-3 text-4xl font-semibold sm:text-5xl">
               Pizza buyurtma qilish
             </h1>
-            <p className="mt-3 max-w-2xl text-slate-600">
-              Next.js, TypeScript, Zustand, Axios, Tailwind CSS, Shadcn UI va
-              React Hot Toast bilan yozilgan pizza doʻkoni.
-            </p>
+             
           </div>
           <div className="flex flex-col gap-3 sm:items-end">
             <div className="rounded-3xl bg-slate-100 px-4 py-3 text-slate-700">
