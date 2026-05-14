@@ -1,13 +1,17 @@
-export interface Order {
-  id?: string;
-
-  customerName: string;
-  phone: string;
+export interface OrderItem {
+  id: number;
+  name: string;
   address: string;
-
-  items: any[];
-
-  totalPrice: number;
-
-  status: "pending" | "preparing" | "delivered";
+  payment: string;
+  items: {
+    id: number;
+    name: string;
+    size: number;
+    price: number;
+    quantity: number;
+    types: string[];
+  }[];
+  total: number;
+  date: string;
+  delivered?: boolean;
 }

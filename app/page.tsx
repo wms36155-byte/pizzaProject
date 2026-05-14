@@ -1,114 +1,149 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo } from "react";
+import toast, { Toaster } from "react-hot-toast";
+import { Button } from "@/components/ui/button";
+import PizzaList from "@/components/PizzaList";
+import useStore from "@/store/useStore";
+import useAppStore from "@/store/appStore";
+import { Pizza } from "@/types/pizza";
+import { getPizzas } from "@/lib/pizzaActions";
 
-import Navbar from "@/components/shared/Navbar";
-import Container from "@/components/shared/Container";
-
-import CategoryFilter from "@/components/home/CategoryFilter";
-import ProductList from "@/components/home/ProductList";
-import SortDropdown from "@/components/home/SortDropdown";
-
-import { getCategories } from "@/services/category.servise";
-import {
-  getProducts,
-  getProductsByCategory,
-} from "@/services/product.service";
+const categories = [
+  "Все",
+  "Мясные",
+  "Вегетарианская",
+  "Гриль",
+  "Острые",
+  "Закрытые",
+];
 
 export default function HomePage() {
-  const [categories, setCategories] = useState<any[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
+  const pizzas = useAppStore((state) => state.pizzas);
+  const selectedCategory = useAppStore((state) => state.selectedCategory);
+  const sortType = useAppStore((state) => state.sortType);
+  const isLoading = useAppStore((state) => state.isLoading);
+  const setPizzas = useAppStore((state) => state.setPizzas);
+  const setSelectedCategory = useAppStore((state) => state.setSelectedCategory);
+  const setSortType = useAppStore((state) => state.setSortType);
+  const setIsLoading = useAppStore((state) => state.setIsLoading);
 
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  // 🔥 PRODUCTS
-  const fetchProducts = async (categoryId?: string) => {
-    try {
-      setLoading(true);
-
-      const res = categoryId
-        ? await getProductsByCategory(categoryId)
-        : await getProducts();
-
-      const data = res?.data || res;
-
-      setProducts(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.log(err);
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 🔥 CATEGORIES
-  const fetchCategories = async () => {
-    try {
-      const res = await getCategories();
-      const data = res?.data || res;
-
-      setCategories(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.log(err);
-      setCategories([]);
-    }
-  };
+  const cart = useStore((state) => state.cart);
+  const addToCart = useStore((state) => state.addToCart);
 
   useEffect(() => {
-    fetchCategories();
-    fetchProducts();
-  }, []);
+    const loadPizzas = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getPizzas();
+        setPizzas(data);
+      } catch {
+        toast.error("Pizza ma'lumotlarini yuklab bo'lmadi");
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const handleCategory = (id: string) => {
-    setSelectedCategory(id);
-    fetchProducts(id);
+    loadPizzas();
+  }, [setPizzas, setIsLoading]);
+
+  const filteredPizzas = useMemo(() => {
+    return selectedCategory === 0
+      ? pizzas
+      : pizzas.filter((pizza) =>
+          pizza.types.includes(categories[selectedCategory]),
+        );
+  }, [pizzas, selectedCategory]);
+
+  const sortedPizzas = useMemo(() => {
+    const list = [...filteredPizzas];
+    if (sortType === "alphabet") {
+      return list.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    if (sortType === "popular") {
+      return list.sort((a, b) => b.sold - a.sold);
+    }
+    return list;
+  }, [filteredPizzas, sortType]);
+
+  const handleAddToCart = (pizza: Pizza, size: number, price: number) => {
+    addToCart({
+      id: pizza.id,
+      name: pizza.name,
+      imageUrl: pizza.imageUrl,
+      size,
+      price,
+      quantity: 1,
+      types: pizza.types,
+    });
+    toast.success(`${pizza.name} savatchaga qo'shildi!`);
   };
 
   return (
-    <main className="min-h-screen bg-[#F8F8F8]">
+    <div className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
+      <Toaster position="top-center" />
+      <div className="mx-auto max-w-7xl space-y-8">
+        <header className="flex flex-col gap-6 rounded-3xl bg-white p-6 shadow-lg sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm uppercase tracking-[0.3em] text-orange-600">
+              Next Pizza
+            </p>
+            <h1 className="mt-3 text-4xl font-semibold sm:text-5xl">
+              Pizza buyurtma qilish
+            </h1>
+            <p className="mt-3 max-w-2xl text-slate-600">
+              Next.js, TypeScript, Zustand, Axios, Tailwind CSS, Shadcn UI va
+              React Hot Toast bilan yozilgan pizza doʻkoni.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:items-end">
+            <div className="rounded-3xl bg-slate-100 px-4 py-3 text-slate-700">
+              Savatchada:{" "}
+              <span className="font-semibold text-slate-900">
+                {cart.length}
+              </span>{" "}
+              ta mahsulot
+            </div>
+            <Link href="/cart">
+              <Button>Savatchaga o&apos;tish</Button>
+            </Link>
+          </div>
+        </header>
 
-      <Navbar />
-
-      <Container>
-
-        <div className="py-10">
-
-          {/* TOP BAR */}
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-
-            <CategoryFilter
-              categories={categories}
-              selected={selectedCategory}
-              onSelect={handleCategory}
-            />
-
-            <SortDropdown />
-
+        <section className="grid gap-4 rounded-3xl bg-white p-6 shadow-lg">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-wrap gap-2">
+              {categories.map((category, index) => (
+                <Button
+                  key={category}
+                  variant={selectedCategory === index ? "default" : "outline"}
+                  onClick={() => setSelectedCategory(index)}
+                >
+                  {category}
+                </Button>
+              ))}
+            </div>
+            <select
+              value={sortType}
+              onChange={(event) => setSortType(event.target.value)}
+              className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition hover:border-slate-300"
+            >
+              <option value="default">Saralash</option>
+              <option value="alphabet">Alifbo bo&apos;yicha</option>
+              <option value="popular">Mashhurlik bo&apos;yicha</option>
+            </select>
           </div>
 
-          {/* TITLE */}
-          <h1 className="text-5xl font-black mt-10 mb-8">
-            Все пиццы 🍕
-          </h1>
-
-          {/* CONTENT */}
-          {loading ? (
-            <div className="flex justify-center py-20 text-gray-500">
-              Loading pizzas...
-            </div>
-          ) : products.length === 0 ? (
-            <div className="flex justify-center py-20 text-gray-400">
-              No pizzas found 😢
+          {isLoading ? (
+            <div className="rounded-3xl border border-slate-200 p-10 text-center text-slate-500">
+              Yuklanmoqda...
             </div>
           ) : (
-            <ProductList products={products} />
+            <PizzaList pizzas={sortedPizzas} onAddToCart={handleAddToCart} />
           )}
-
-        </div>
-
-      </Container>
-
-    </main>
+        </section>
+      </div>
+    </div>
   );
 }

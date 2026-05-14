@@ -1,242 +1,205 @@
 "use client";
 
+import Link from "next/link";
 import Image from "next/image";
-import { useState, useMemo, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
-
-import CheckoutModal from "@/components/cart/CheckoutModal";
-
-import { useCartStore } from "@/store/cart.store";
-import { useOrderStore } from "@/store/order.store";
-
-type CheckoutData = {
-  name: string;
-  email: string;
-  address: string;
-  notes: string;
-};
+import { useMemo } from "react";
+import toast, { Toaster } from "react-hot-toast";
+import useStore from "@/store/useStore";
+import useCartFormStore from "@/store/cartFormStore";
+import { Button } from "@/components/ui/button";
+import { createOrder } from "@/lib/orderActions";
 
 export default function CartPage() {
-  const router = useRouter();
+  const cart = useStore((state) => state.cart);
+  const updateQuantity = useStore((state) => state.updateQuantity);
+  const removeFromCart = useStore((state) => state.removeFromCart);
+  const clearCart = useStore((state) => state.clearCart);
 
-  const {
-    items,
-    increaseQty,
-    decreaseQty,
-    removeFromCart,
-    clearCart,
-  } = useCartStore();
+  const name = useCartFormStore((state) => state.name);
+  const address = useCartFormStore((state) => state.address);
+  const payment = useCartFormStore((state) => state.payment);
+  const isSubmitting = useCartFormStore((state) => state.isSubmitting);
+  const setName = useCartFormStore((state) => state.setName);
+  const setAddress = useCartFormStore((state) => state.setAddress);
+  const setPayment = useCartFormStore((state) => state.setPayment);
+  const setIsSubmitting = useCartFormStore((state) => state.setIsSubmitting);
+  const resetForm = useCartFormStore((state) => state.resetForm);
 
-  const { addOrder } = useOrderStore();
-
-  const [openCheckout, setOpenCheckout] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const isEmpty = items.length === 0;
-
-  // TOTAL PRICE
-  const total = useMemo(() => {
-    return items.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    );
-  }, [items]);
-
-  // LOCK SCROLL WHEN MODAL OPEN
-  useEffect(() => {
-    document.body.style.overflow = openCheckout ? "hidden" : "auto";
-  }, [openCheckout]);
-
-  // CHECKOUT HANDLER (SAFE + CLEAN)
-  const handleCheckout = useCallback(
-    async (data: CheckoutData) => {
-      if (isEmpty || loading) return;
-
-      setLoading(true);
-
-      try {
-        // ensure order items match OrderStore types (id: number)
-        addOrder({
-          id: Date.now(),
-          customer: data.name,
-          address: data.address,
-          total,
-          status: "Pending",
-          createdAt: new Date().toLocaleDateString(),
-          items: items.map((it) => ({
-            id: Number(it.id),
-            title: it.title,
-            quantity: it.quantity,
-            price: it.price,
-          })),
-        });
-
-        clearCart();
-        setOpenCheckout(false);
-
-        router.push("/admin/orders");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [items, total, isEmpty, loading, addOrder, clearCart, router]
+  const total = useMemo(
+    () => cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    [cart],
   );
 
+  const handleOrder = async () => {
+    if (!name.trim() || !address.trim()) {
+      return toast.error("Iltimos ismingiz va manzilingizni kiriting");
+    }
+
+    if (cart.length === 0) {
+      return toast.error("Savatcha bo'sh");
+    }
+
+    try {
+      setIsSubmitting(true);
+      await createOrder({
+        name,
+        address,
+        payment,
+        items: cart,
+        total,
+      });
+      toast.success("Buyurtma qabul qilindi!");
+      clearCart();
+      resetForm();
+    } catch {
+      toast.error("Buyurtma yuborishda xatolik yuz berdi");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#f5f5f5] py-10 px-4">
-      <div className="max-w-5xl mx-auto">
-
-        {/* HEADER */}
-        <div className="flex items-center gap-4 mb-10">
-          <div className="w-16 h-16 rounded-2xl bg-orange-500 text-white flex items-center justify-center shadow-lg">
-            <ShoppingBag size={30} />
-          </div>
-
+    <div className="min-h-screen bg-slate-50 py-10 px-4 text-slate-900">
+      <Toaster position="top-center" />
+      <div className="mx-auto max-w-6xl rounded-3xl bg-white p-6 shadow-lg">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-5xl font-black">Your Cart</h1>
-            <p className="text-gray-500 mt-2 text-lg">
-              Fresh pizza is waiting 🍕
+            <h1 className="text-3xl font-semibold">Savatcha</h1>
+            <p className="text-sm text-slate-500">
+              Buyurtma ma&apos;lumotlarini kiritib, savatchangizni tasdiqlang.
             </p>
           </div>
+          <Link href="/">
+            <Button variant="outline">Pizza sahifasiga qaytish</Button>
+          </Link>
         </div>
 
-        {/* EMPTY */}
-        {isEmpty ? (
-          <div className="bg-white rounded-[30px] border shadow-sm p-16 text-center">
-            <h2 className="text-4xl font-black mb-4">
-              Cart is empty 🛒
-            </h2>
-
-            <p className="text-gray-500 text-lg">
-              Add your favorite pizzas
-            </p>
-
-            <button
-              onClick={() => router.push("/")}
-              className="mt-8 bg-orange-500 hover:bg-orange-600 text-white px-10 py-4 rounded-2xl font-black text-lg transition"
-            >
-              Continue Shopping
-            </button>
+        {cart.length === 0 ? (
+          <div className="mt-10 rounded-3xl border border-dashed border-slate-300 p-14 text-center text-slate-500">
+            Savatcha bo&apos;sh. Iltimos asosiy sahifaga qaytib pitsa
+            qo&apos;shing.
           </div>
         ) : (
-          <div className="grid lg:grid-cols-[1fr_380px] gap-8">
-
-            {/* ITEMS */}
-            <div className="space-y-5">
-              {items.map((item) => (
+          <div className="mt-8 grid gap-8 lg:grid-cols-[1.7fr_1fr]">
+            <div className="space-y-4">
+              {cart.map((item) => (
                 <div
-                  key={item.id}
-                  className="bg-white rounded-[30px] border p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-5"
+                  key={`${item.id}-${item.size}`}
+                  className="flex flex-col gap-4 rounded-3xl border border-slate-200 p-4 sm:flex-row sm:items-center"
                 >
-                  <div className="flex items-center gap-5 w-full">
-                    <div className="relative w-28 h-28 rounded-3xl overflow-hidden bg-gray-100 shrink-0">
-                      <Image
-                        src={item.image}
-                        alt={item.title}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-
-                    <div className="flex-1">
-                      <h2 className="text-2xl font-black select-none">
-                        {item.title}
-                      </h2>
-
-                      <p className="text-orange-500 font-black text-xl mt-2">
-                        {item.price} ₽
-                      </p>
-                    </div>
+                  <Image
+                    src={item.imageUrl}
+                    alt={item.name}
+                    width={112}
+                    height={112}
+                    className="h-28 w-28 rounded-3xl object-cover"
+                  />
+                  <div className="flex-1">
+                    <h2 className="text-xl font-semibold">{item.name}</h2>
+                    <p className="text-sm text-slate-500">
+                      Tip: {item.types.join(", ")}
+                    </p>
+                    <p className="text-sm text-slate-500">
+                      Hajmi: {item.size} sm
+                    </p>
+                    <p className="mt-2 font-semibold">Narxi: {item.price} ₽</p>
                   </div>
-
-                  {/* ACTIONS */}
-                  <div className="flex items-center gap-6">
-
-                    {/* QTY */}
-                    <div className="flex items-center gap-3 bg-gray-100 rounded-full px-3 py-2">
-                      <button
-                        onClick={() => decreaseQty(item.id)}
-                        className="w-9 h-9 rounded-full bg-white hover:bg-gray-200 flex items-center justify-center"
-                      >
-                        <Minus size={16} />
-                      </button>
-
-                      <span className="font-black text-lg min-w-5 text-center">
-                        {item.quantity}
-                      </span>
-
-                      <button
-                        onClick={() => increaseQty(item.id)}
-                        className="w-9 h-9 rounded-full bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center"
-                      >
-                        <Plus size={16} />
-                      </button>
+                  <div className="flex flex-col gap-2 rounded-3xl bg-slate-100 p-3 text-right">
+                    <div className="flex items-center justify-between gap-2 text-sm text-slate-700">
+                      <span>Soni:</span>
+                      <span>{item.quantity}</span>
                     </div>
-
-                    {/* DELETE */}
-                    <button
-                      onClick={() => removeFromCart(item.id)}
-                      className="w-11 h-11 rounded-full bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center"
+                    <div className="grid grid-cols-3 gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          updateQuantity(item.id, item.size, item.quantity - 1)
+                        }
+                      >
+                        -
+                      </Button>
+                      <div className="flex items-center justify-center rounded-2xl bg-white text-sm font-semibold">
+                        {item.quantity}
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          updateQuantity(item.id, item.size, item.quantity + 1)
+                        }
+                      >
+                        +
+                      </Button>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => removeFromCart(item.id, item.size)}
                     >
-                      <Trash2 size={18} />
-                    </button>
+                      O&apos;chirish
+                    </Button>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* SUMMARY */}
-            <div className="h-fit sticky top-10">
-              <div className="bg-white rounded-[30px] border p-7 shadow-sm">
-
-                <h2 className="text-3xl font-black mb-8">
-                  Order Summary
-                </h2>
-
-                <div className="space-y-5">
-                  <div className="flex justify-between text-gray-500">
-                    <span>Products</span>
-                    <span>{items.length}</span>
-                  </div>
-
-                  <div className="flex justify-between text-gray-500">
-                    <span>Delivery</span>
-                    <span>Free</span>
-                  </div>
-
-                  <div className="border-t pt-5 flex justify-between">
-                    <span className="text-2xl font-black">Total</span>
-                    <span className="text-4xl font-black text-orange-500">
-                      {total} ₽
-                    </span>
-                  </div>
-                </div>
-
-                {/* CHECKOUT */}
-                <button
-                  disabled={isEmpty || loading}
-                  onClick={() => setOpenCheckout(true)}
-                  className={`w-full mt-8 py-5 rounded-2xl font-black text-lg shadow-lg transition
-                    ${
-                      isEmpty || loading
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-orange-500 hover:bg-orange-600 text-white"
-                    }`}
-                >
-                  {loading ? "Processing..." : "Checkout"}
-                </button>
+            <div className="space-y-6 rounded-3xl bg-slate-100 p-6">
+              <div className="space-y-2">
+                <h2 className="text-2xl font-semibold">Buyurtma</h2>
+                <p className="text-sm text-slate-500">
+                  Ism va manzilni kiriting.
+                </p>
               </div>
+              <label className="block space-y-2 text-sm text-slate-700">
+                Ism
+                <input
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-slate-500"
+                  placeholder="Ismingiz"
+                />
+              </label>
+              <label className="block space-y-2 text-sm text-slate-700">
+                Manzil
+                <input
+                  value={address}
+                  onChange={(event) => setAddress(event.target.value)}
+                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-slate-500"
+                  placeholder="Manzilingiz"
+                />
+              </label>
+              <label className="block space-y-2 text-sm text-slate-700">
+                To&apos;lov turi
+                <select
+                  value={payment}
+                  onChange={(event) => setPayment(event.target.value)}
+                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-slate-500"
+                >
+                  <option value="Naqd">Naqd</option>
+                  <option value="Karta">Karta</option>
+                </select>
+              </label>
+              <div className="rounded-3xl bg-white p-4 shadow-sm">
+                <div className="flex items-center justify-between text-sm text-slate-500">
+                  <span>Jami pitsa</span>
+                  <span>{cart.length} ta</span>
+                </div>
+                <div className="mt-3 flex items-center justify-between text-xl font-semibold">
+                  <span>Umumiy summa</span>
+                  <span>{total} ₽</span>
+                </div>
+              </div>
+              <Button
+                onClick={handleOrder}
+                disabled={isSubmitting}
+                className="w-full"
+              >
+                {isSubmitting ? "Yuborilmoqda..." : "Buyurtmani tasdiqlash"}
+              </Button>
             </div>
           </div>
         )}
-
-        {/* MODAL */}
-        <CheckoutModal
-          open={openCheckout}
-          onClose={() => setOpenCheckout(false)}
-          onConfirm={handleCheckout}
-        />
       </div>
     </div>
   );
