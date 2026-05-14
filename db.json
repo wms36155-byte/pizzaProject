@@ -97,45 +97,25 @@
       "sold": 15
     },
     {
-      "id": 1778744628562,
-      "name": "tushonkali",
-      "imageUrl": "https://images.pexels.com/photos/4109081/pexels-photo-4109081.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "id": 1778753470574,
+      "name": "Star Pizza",
+      "imageUrl": "https://i.pinimg.com/originals/39/ee/04/39ee04ec06fb21652c33ea0c2f6773cb.jpg",
       "types": [
-        "Мясные"
+        "Закрытые"
       ],
       "sizes": [
         26,
         30,
         40
       ],
-      "price": 500,
+      "price": 400,
       "rating": 4.4,
       "sold": 0
     }
   ],
   "orders": [
-    {
-      "id": 1778695753443,
-      "name": "ozodbek",
-      "address": "wjrnkl",
-      "payment": "Naqd",
-      "items": [
-        {
-          "id": 1,
-          "name": "Чизбургер-пицца",
-          "imageUrl": "https://images.pexels.com/photos/4109081/pexels-photo-4109081.jpeg?auto=compress&cs=tinysrgb&w=800",
-          "size": 40,
-          "price": 553,
-          "quantity": 1,
-          "types": [
-            "Мясные"
-          ]
-        }
-      ],
-      "total": 553,
-      "date": "5/13/2026, 11:09:13 PM",
-      "delivered": true
-    },
+    
+      
     {
       "id": 1778746304632,
       "name": "Amira",
